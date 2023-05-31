@@ -23,6 +23,7 @@ function App() {
   const [ready, setReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState();
+  const [isStart, setIsStart] = useState(true);
 
   const callResult = async (obj) => {
     setIsLoading(true);
@@ -34,6 +35,11 @@ function App() {
 
   const handleColorSelect = (color, state) => {
     setCurColor(color);
+    setCurState(state);
+  };
+
+  const handleStartState = (status, state) => {
+    setIsStart(status);
     setCurState(state);
   };
 
@@ -144,26 +150,35 @@ function App() {
       <div
         style={{display: "flex", alignItems: "flex-start", flexWrap: "wrap"}}
       >
-        <ColorLabel label={"cap-color"} />
-        {selectedColor.capColor.isSelected ? (
-          <SelectedColorBox
-            label={selectedColor.capColor.name}
-            color={selectedColor.capColor.color}
-            onClick={() => handleColorReset("capColor")}
-          />
-        ) : (
-          colors["capColor"].map((color) => {
-            return (
-              <SelectorButton
-                key={color.name}
-                label={color.name}
-                color={color.color}
-                onClick={() => handleColorSelect(color, "capColor")}
-                selected={curColor.name}
-              />
-            );
-          })
-        )}
+        <SelectorButton
+          label={"Can I eat this mushroom?"}
+          color={"white"}
+          onClick={() => {
+            handleStartState(false, "Start");
+          }}
+        />
+
+        {isStart === false && <ColorLabel label={"cap-color"} />}
+        {isStart === false &&
+          (selectedColor.capColor.isSelected ? (
+            <SelectedColorBox
+              label={selectedColor.capColor.name}
+              color={selectedColor.capColor.color}
+              onClick={() => handleColorReset("capColor")}
+            />
+          ) : (
+            colors["capColor"].map((color) => {
+              return (
+                <SelectorButton
+                  key={color.name}
+                  label={color.name}
+                  color={color.color}
+                  onClick={() => handleColorSelect(color, "capColor")}
+                  selected={curColor.name}
+                />
+              );
+            })
+          ))}
 
         {(curState === "gillColor" || selectedColor.gillColor.isSelected) && (
           <ColorLabel label={"gill-color"} />
@@ -356,7 +371,12 @@ function App() {
         />
       )}
       {ready && isLoading && (
-        <SelectorButton label={"..."} color={"black"} disabled={true} />
+        <SelectorButton
+          label={"..."}
+          color={"black"}
+          disabled={true}
+          style={{cursor: "auto"}}
+        />
       )}
       {result && (
         <>
@@ -368,7 +388,10 @@ function App() {
           <SelectorButton
             label={"< Back to home"}
             color={"black"}
-            onClick={() => handleReset()}
+            onClick={() => {
+              handleReset();
+              setIsStart(true);
+            }}
           />
         </>
       )}

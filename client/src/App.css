@@ -4,3 +4,7 @@
   font-family: "Spoqa Han Sans Neo", "sans-serif";
   font-size: 16px;
 }
+
+.no-cursor {
+  cursor: default;
+}
