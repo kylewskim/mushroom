@@ -1,39 +1,87 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import "./App.css";
 import SelectorButton from "./components/SelectorButton";
 import {colors} from "./utils/color";
 import nextLogo from "./assets/Next.png";
 import ColorLabel from "./components/ColorLabel";
-import BruiseButton from "./components/BruiseButton";
 import SelectedColorBox from "./components/SelectedColor";
 
 function App() {
-  const [curColor, setCurColor] = useState({name: "", color: ""});
+  const [curColor, setCurColor] = useState({name: "", color: "", tag: ""});
   const [curState, setCurState] = useState("");
   const [selectedColor, setSelectedColor] = useState({
-    capColor: {isSelected: false, color: "", name: ""},
-    gillColor: {isSelected: false, color: "", name: ""},
-    ringType: {isSelected: false, color: "", name: ""},
-    stalkColorAbv: {isSelected: false, color: "", name: ""},
-    stalkColorBlw: {isSelected: false, color: "", name: ""},
-    stalkColor: {isSelected: false, color: "", name: ""},
-    veilColor: {isSelected: false, color: "", name: ""},
-    bruise: {isSelected: false, color: "", name: ""},
+    capColor: {isSelected: false, color: "", name: "", tag: ""},
+    gillColor: {isSelected: false, color: "", name: "", tag: ""},
+    ringType: {isSelected: false, color: "", name: "", tag: ""},
+    stalkColorAbv: {isSelected: false, color: "", name: "", tag: ""},
+    stalkColorBlw: {isSelected: false, color: "", name: "", tag: ""},
+    stalkColor: {isSelected: false, color: "", name: "", tag: ""},
+    veilColor: {isSelected: false, color: "", name: "", tag: ""},
+    bruise: {isSelected: false, color: "", name: "", tag: ""},
   });
   const [ready, setReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState();
+  const [result, setResult] = useState("");
   const [isStart, setIsStart] = useState(true);
 
-  const callResult = async (obj) => {
+  const callResult = async () => {
+    setResult("");
+    const selectedCapColor = selectedColor.capColor.tag;
+    const selectedBruise = selectedColor.bruise.tag;
+    const selectedGillColor = selectedColor.gillColor.tag;
+    const selectedStalkColorAbv = Object.keys(selectedColor).includes(
+      "stalkColor"
+    )
+      ? selectedColor.stalkColor.tag
+      : selectedColor.stalkColorAbv.tag;
+    const selectedStalkColorBlw = Object.keys(selectedColor).includes(
+      "stalkColor"
+    )
+      ? selectedColor.stalkColor.tag
+      : selectedColor.stalkColorBlw.tag;
+    const selectedRingType = selectedColor.ringType.tag;
+    const selectedVeilColor = selectedColor.veilColor.tag;
+
+    const formData = {
+      capColorTag: selectedCapColor,
+      bruiseTag: selectedBruise,
+      gillColorTag: selectedGillColor,
+      stalkColorAbvTag: selectedStalkColorAbv,
+      stalkColorBlwTag: selectedStalkColorBlw,
+      ringTypeTag: selectedRingType,
+      veilColorTag: selectedVeilColor,
+    };
+
+    const formDataValues = Object.values(formData);
+
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const randomResult = Math.random() < 0.5; // 50% 확률로 true 또는 false 반환
-    setResult(randomResult ? "YES" : "NO");
-    setIsLoading(false);
+
+    await fetch("/", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(formDataValues),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((response) => {
+        console.log(response.result);
+        setResult(response.result);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   const handleColorSelect = (color, state) => {
+    console.log(color);
     setCurColor(color);
     setCurState(state);
   };
@@ -48,10 +96,10 @@ function App() {
       ? setSelectedColor((prevState) => ({
           capColor: prevState["capColor"],
           gillColor: prevState["gillColor"],
-          ringType: {isSelected: false, color: "", name: ""},
-          stalkColorAbv: {isSelected: false, color: "", name: ""},
-          stalkColorBlw: {isSelected: false, color: "", name: ""},
-          stalkColor: {isSelected: false, color: "", name: ""},
+          ringType: {isSelected: false, color: "", name: "", tag: ""},
+          stalkColorAbv: {isSelected: false, color: "", name: "", tag: ""},
+          stalkColorBlw: {isSelected: false, color: "", name: "", tag: ""},
+          stalkColor: {isSelected: false, color: "", name: "", tag: ""},
           veilColor: prevState["veilColor"],
           bruise: prevState["bruise"],
         }))
@@ -61,9 +109,10 @@ function App() {
             isSelected: false,
             color: "",
             name: "",
+            tag: "",
           },
         }));
-    setCurColor({name: "", color: ""});
+    setCurColor({name: "", color: "", tag: ""});
     setCurState(state);
   };
 
@@ -74,10 +123,10 @@ function App() {
         isSelected: true,
         color: color.color,
         name: color.name,
+        tag: color.tag,
       },
     }));
     setReady(true);
-    callResult(selectedColor);
   };
 
   const handleButtonClick = () => {
@@ -102,6 +151,7 @@ function App() {
         isSelected: true,
         color: curColor.color,
         name: curColor.name,
+        tag: curColor.tag,
       };
 
       updatedSelectedColor[curState] = updatedColor;
@@ -115,21 +165,21 @@ function App() {
       return updatedSelectedColor;
     });
 
-    setCurColor({name: "", color: ""});
+    setCurColor({name: "", color: "", tag: ""});
   };
 
   const handleReset = () => {
-    setCurColor({name: "", color: ""});
+    setCurColor({name: "", color: "", tag: ""});
     setCurState("");
     setSelectedColor({
-      capColor: {isSelected: false, color: "", name: ""},
-      gillColor: {isSelected: false, color: "", name: ""},
-      ringType: {isSelected: false, color: "", name: ""},
-      stalkColorAbv: {isSelected: false, color: "", name: ""},
-      stalkColorBlw: {isSelected: false, color: "", name: ""},
-      stalkColor: {isSelected: false, color: "", name: ""},
-      veilColor: {isSelected: false, color: "", name: ""},
-      bruise: {isSelected: false, color: "", name: ""},
+      capColor: {isSelected: false, color: "", name: "", tag: ""},
+      gillColor: {isSelected: false, color: "", name: "", tag: ""},
+      ringType: {isSelected: false, color: "", name: "", tag: ""},
+      stalkColorAbv: {isSelected: false, color: "", name: "", tag: ""},
+      stalkColorBlw: {isSelected: false, color: "", name: "", tag: ""},
+      stalkColor: {isSelected: false, color: "", name: "", tag: ""},
+      veilColor: {isSelected: false, color: "", name: "", tag: ""},
+      bruise: {isSelected: false, color: "", name: "", tag: ""},
     });
     setReady(false);
     setIsLoading(false);
@@ -140,7 +190,7 @@ function App() {
     <div
       style={{
         backgroundColor:
-          result === "YES" ? "green" : result === "NO" ? "red" : curColor.color,
+          result === "e" ? "green" : result === "p" ? "red" : curColor.color,
         display: "flex",
         height: "100vh",
         alignItems: "flex-start",
@@ -164,6 +214,7 @@ function App() {
             <SelectedColorBox
               label={selectedColor.capColor.name}
               color={selectedColor.capColor.color}
+              tag={selectedColor.capColor.tag}
               onClick={() => handleColorReset("capColor")}
             />
           ) : (
@@ -173,7 +224,9 @@ function App() {
                   key={color.name}
                   label={color.name}
                   color={color.color}
+                  tag={color.tag}
                   onClick={() => handleColorSelect(color, "capColor")}
+                  onclick={() => console.log(color.tag)}
                   selected={curColor.name}
                 />
               );
@@ -189,6 +242,7 @@ function App() {
             <SelectedColorBox
               label={selectedColor.gillColor.name}
               color={selectedColor.gillColor.color}
+              tag={selectedColor.gillColor.tag}
               onClick={() => handleColorReset("gillColor")}
             />
           ) : (
@@ -336,18 +390,28 @@ function App() {
         ) : null}
 
         {(curState === "bruise" || selectedColor.bruise.isSelected) && (
-          <>
-            <ColorLabel label={"bruise"} />
-            {colors["bruise"].map((color) => (
-              <BruiseButton
+          <ColorLabel label={"bruise"} />
+        )}
+
+        {curState === "bruise" || selectedColor.bruise.isSelected ? (
+          selectedColor.bruise.isSelected ? (
+            <SelectedColorBox
+              label={selectedColor.bruise.name}
+              color={selectedColor.bruise.color}
+              onClick={() => handleColorReset("bruise")}
+            />
+          ) : (
+            colors["bruise"].map((color) => (
+              <SelectorButton
                 key={color.name}
                 label={color.name}
-                selected={selectedColor.bruise.name}
+                color={color.color}
                 onClick={() => handleBruise(color)}
+                selected={curColor.name}
               />
-            ))}
-          </>
-        )}
+            ))
+          )
+        ) : null}
 
         {curColor.color ? (
           <button
@@ -367,7 +431,7 @@ function App() {
         <SelectorButton
           label={"Can I eat this mushroom?"}
           color={"black"}
-          disabled={true}
+          onClick={() => callResult()}
         />
       )}
       {ready && isLoading && (
@@ -381,7 +445,7 @@ function App() {
       {result && (
         <>
           <SelectorButton
-            label={result === "YES" ? "Yes, you can eat" : "No, you can't eat"}
+            label={result === "e" ? "Yes, you can eat" : "No, you can't eat"}
             color={"black"}
             disabled={true}
           />
